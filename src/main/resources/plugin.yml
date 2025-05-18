@@ -2,3 +2,7 @@ name: JiaoPei
 version: '1.0-SNAPSHOT'
 main: top.xiaojiang233.jiaoPei.JiaoPei
 api-version: '1.21'
+commands:
+  jiaopei:
+    description: 教培插件的主命令
+    usage: /<command>
