@@ -1,5 +1,5 @@
 name: JiaoPei
-version: '1.0-SNAPSHOT'
+version: '2.0'
 main: top.xiaojiang233.jiaoPei.JiaoPei
 api-version: '1.21'
 commands:
