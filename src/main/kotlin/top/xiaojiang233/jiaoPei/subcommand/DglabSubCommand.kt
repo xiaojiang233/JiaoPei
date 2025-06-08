@@ -16,6 +16,40 @@ class DglabSubCommand(private val bdsmManager: BdsmManager) : SubCommand {
             return false
         }
 
+        if (args.isEmpty()) {
+            sendUsage(sender)
+            return false
+        }
+
+        // 处理停止命令
+        if (args[0].equals("stop", ignoreCase = true)) {
+            if (args.size < 2) {
+                sender.sendMessage(Utils.prefixedMessage("&c请指定要停止电击的玩家名!"))
+                return false
+            }
+
+            val targetName = args[1]
+            val target = Bukkit.getPlayer(targetName)
+
+            if (target == null) {
+                sender.sendMessage(Utils.prefixedMessage("&c找不到玩家 &e$targetName&c!"))
+                return false
+            }
+
+            // 检查目标是否正在被电击
+            if (!bdsmManager.isBeingDglabbed(target.uniqueId)) {
+                sender.sendMessage(Utils.prefixedMessage("&c玩家 &e${target.name} &c当前没有被电击！"))
+                return false
+            }
+
+            // 停止电击
+            bdsmManager.stopDglab(target.uniqueId)
+            sender.sendMessage(Utils.prefixedMessage("&a已停止对 &e${target.name} &a的电击"))
+            target.sendMessage(Utils.prefixedMessage("&e${sender.name} &a停止了对你的电击"))
+            return true
+        }
+
+        // 处理正常的电击命令
         if (args.size < 4) {
             sendUsage(sender)
             return false
@@ -33,12 +67,6 @@ class DglabSubCommand(private val bdsmManager: BdsmManager) : SubCommand {
             sender.sendMessage(Utils.prefixedMessage("&c你不能对自己使用电击！"))
             return false
         }
-
-        /*// 检查目标是否已经被束缚
-        if (!bdsmManager.isPlacedBy(target.uniqueId, sender.uniqueId)) {
-            sender.sendMessage(Utils.prefixedMessage("&c你必须先束缚 &e${target.name} &c才能对其使用电击！"))
-            return false
-        }*/
 
         val typeArg = args[1].lowercase()
         val type = when (typeArg) {
@@ -127,15 +155,31 @@ class DglabSubCommand(private val bdsmManager: BdsmManager) : SubCommand {
     override fun tabComplete(sender: CommandSender, args: Array<out String>): List<String> {
         return when (args.size) {
             1 -> {
-                // 补全玩家名
+                // 第一个参数可以是"stop"或玩家名
+                val completions = mutableListOf("stop")
+
+                // 添加玩家名补全
                 Bukkit.getOnlinePlayers()
                     .map { it.name }
-                    .filter { it != sender.name && it.startsWith(args[0], ignoreCase = true) }
+                    .filter { it != sender.name }
+                    .let { completions.addAll(it) }
+
+                completions.filter { it.startsWith(args[0], ignoreCase = true) }
             }
             2 -> {
-                // 补全电击类型
-                listOf("continuous", "interval")
-                    .filter { it.startsWith(args[1], ignoreCase = true) }
+                if (args[0].equals("stop", ignoreCase = true)) {
+                    // 如果第一个参数是stop，第二个参数是被电击的玩家名
+                    Bukkit.getOnlinePlayers()
+                        .filter {
+                            bdsmManager.isBeingDglabbed(it.uniqueId)
+                        }
+                        .map { it.name }
+                        .filter { it.startsWith(args[1], ignoreCase = true) }
+                } else {
+                    // 否则是电击类型
+                    listOf("continuous", "interval")
+                        .filter { it.startsWith(args[1], ignoreCase = true) }
+                }
             }
             3 -> {
                 // 补全电击强度
@@ -161,7 +205,9 @@ class DglabSubCommand(private val bdsmManager: BdsmManager) : SubCommand {
     }
 
     private fun sendUsage(sender: CommandSender) {
-        sender.sendMessage(Utils.prefixedMessage("&c使用方法: &e/jiaopei bdsm dglab <玩家名> <类型> <强度> <时长> [间隔]"))
+        sender.sendMessage(Utils.prefixedMessage("&c使用方法:"))
+        sender.sendMessage(Utils.prefixedMessage("&e/jiaopei bdsm dglab <玩家名> <类型> <强度> <时长> [间隔]"))
+        sender.sendMessage(Utils.prefixedMessage("&e/jiaopei bdsm dglab stop <玩家名> &7- 停止对指定玩家的电击"))
         sender.sendMessage(Utils.prefixedMessage("&7类型: &econtinuous&7(持续) 或 &einterval&7(间隙)"))
         sender.sendMessage(Utils.prefixedMessage("&7强度: &e0-100&7, 数值越大伤害越高"))
         sender.sendMessage(Utils.prefixedMessage("&7时长: &e1-60&7秒"))

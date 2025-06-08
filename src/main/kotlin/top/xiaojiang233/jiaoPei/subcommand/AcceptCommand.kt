@@ -32,7 +32,7 @@ class AcceptCommand(
         val targetUUID = target.uniqueId
         val senderUUID = senderEntity.uniqueId
 
-        // 检查BDSM相关邀请（电击或束缚）
+        // 检查BDSM相关邀请（电击、束缚或牵引）
         if (bdsmManager.hasDglabInvitation(targetUUID, senderUUID)) {
             // 处理电击邀请
             val accepted = bdsmManager.acceptDglabInvitation(targetUUID, senderUUID)
@@ -42,6 +42,12 @@ class AcceptCommand(
         } else if (bdsmManager.hasPlaceInvitation(targetUUID, senderUUID)) {
             // 处理束缚邀请
             val accepted = bdsmManager.acceptPlaceInvitation(targetUUID, senderUUID)
+            if (accepted) {
+                return true
+            }
+        } else if (bdsmManager.hasLeashInvitation(targetUUID, senderUUID)) {
+            // 处理牵引邀请
+            val accepted = bdsmManager.acceptLeashInvitation(targetUUID, senderUUID)
             if (accepted) {
                 return true
             }
@@ -125,7 +131,8 @@ class AcceptCommand(
             Bukkit.getOnlinePlayers().forEach { player ->
                 if (player.name != sender.name &&
                     (bdsmManager.hasPlaceInvitation(player.uniqueId, senderUUID) ||
-                     bdsmManager.hasDglabInvitation(player.uniqueId, senderUUID)) &&
+                            bdsmManager.hasDglabInvitation(player.uniqueId, senderUUID) ||
+                            bdsmManager.hasLeashInvitation(player.uniqueId, senderUUID)) &&
                     player.name.startsWith(args.getOrNull(0) ?: "", ignoreCase = true)
                 ) {
                     completions.add(player.name)

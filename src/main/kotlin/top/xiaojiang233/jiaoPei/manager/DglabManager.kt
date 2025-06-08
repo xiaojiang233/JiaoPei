@@ -25,10 +25,8 @@ class DglabManager(private val plugin: JavaPlugin) : Listener {
 
     // 邀请超时时间（毫秒）
     private val invitationTimeout = 120000L // 2分钟
-
-    init {
+    fun initialize() {
         Bukkit.getPluginManager().registerEvents(this, plugin)
-
         // 定期清理过期邀请
         object : BukkitRunnable() {
             override fun run() {
@@ -36,6 +34,7 @@ class DglabManager(private val plugin: JavaPlugin) : Listener {
             }
         }.runTaskTimer(plugin, 1200L, 1200L)
     }
+
 
     // 电击类型枚举
     enum class DglabType {

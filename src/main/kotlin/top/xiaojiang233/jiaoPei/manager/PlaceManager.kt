@@ -32,10 +32,8 @@ class PlaceManager(private val plugin: JavaPlugin) : Listener {
     // 每个玩家最大Place邀请数量
     private val maxPlaceInvitationsPerPlayer = 2
 
-    // 初始化，注册事件监听器
-    init {
+    fun initialize() {
         Bukkit.getPluginManager().registerEvents(this, plugin)
-
         // 定期清理过期邀请
         object : BukkitRunnable() {
             override fun run() {
@@ -43,6 +41,7 @@ class PlaceManager(private val plugin: JavaPlugin) : Listener {
             }
         }.runTaskTimer(plugin, 1200L, 1200L) // 每分钟运行一次
     }
+
 
     // 创建place邀请
     fun createPlaceInvitation(masterUUID: UUID, targetUUID: UUID, duration: Int): Boolean {
