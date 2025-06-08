@@ -23,3 +23,5 @@
 `/jiaopei bdsm dglab` **~~电击~~**（如果你被束缚了则可以被强制电击）
 
 `/jiaopei bdsm place` **~~束缚放置~~**
+
+`/jiaopei leash` **~~牵引~~**
